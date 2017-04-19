@@ -82,7 +82,18 @@ static int hello_init(void)
 
 	 		printk("Total VM size, %ld byte\n", totalSize);
 
-	 		
+	 		struct files_struct *files_task;	
+	 		files_task = temp->files;
+	 		struct fdtable *table_file;
+	 		table_file = files_fdtable(files_task); 
+
+	 		int count = 0;
+	 		while(table_file->fd[count] != NULL) {
+	 			printk("Opened file %i; flag is %i\n", count, table_file->fd[count]->f_flags);
+	 			count++;
+	 		}
+
+	 		//printk("Hım? %d\n", atomic_read(&files_task->count));
 // This part goes into kernel panic. Yeah, you heard it right, I said kernel panic.
 /*
 	 	struct files_struct *files_task;
