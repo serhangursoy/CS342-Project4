@@ -43,24 +43,24 @@ static int hello_init(void)
 	for_each_process(temp) {
 		if (temp->pid == input_pid) {
 
-			printk(KERN_WARNING "This process's name is %s\nParent process's name is %s  with pid %i\n", temp->comm, temp->parent->comm, temp->parent->pid);
+			printk(KERN_WARNING "Input process' name is %s\nInput process' parent name is %s with pid %i\n", temp->comm, temp->parent->comm, temp->parent->pid);
 
-			printk(KERN_WARNING "|>%s pid:%i\n", temp->parent->comm, temp->parent->pid);
+			printk(KERN_WARNING "|+>  %s pid:%i\n", temp->parent->comm, temp->parent->pid);
 
 	 		struct list_head *p; //Pointer
 	 		struct task_struct child_task;
 	 		list_for_each(p, &(temp->parent->children)){
 	 			child_task = *list_entry(p, struct task_struct, sibling);
 	 			if (child_task.pid != input_pid)
-	 				printk("      |-->%s pid:%d\n",child_task.comm, child_task.pid);
+	 				printk("      |-->  %s pid:%d\n",child_task.comm, child_task.pid);
 	 			else{
-	 				printk("      |-->%s pid:%d\n",child_task.comm, child_task.pid);
+	 				printk("      |-->  %s pid:%d\n",child_task.comm, child_task.pid);
 	 				struct list_head *p2; //Pointer
 	 				struct task_struct child_task2;
 	 				list_for_each(p2, &(temp->children)){
 	 					child_task2 = *list_entry(p2, struct task_struct, sibling);
 	 					if (child_task2.pid != input_pid)
-	 						printk("          |-->%s pid:%d\n",child_task2.comm, child_task2.pid);
+	 						printk("          |-->  %s pid:%d\n",child_task2.comm, child_task2.pid);
 	 				}
 	 			}
 	 		}
@@ -75,40 +75,26 @@ static int hello_init(void)
 	 		long totalSize = 0;
 
 	 		while(v != NULL) {
-	 			printk("VM_START: %ld, VM_END: %ld\n", v->vm_start, v->vm_end);
+	 			printk(KERN_WARNING "VM_START: %ld, VM_END: %ld\n", v->vm_start, v->vm_end);
 	 			totalSize += v->vm_end - v->vm_start;
 	 			v = v->vm_next;
 	 		}
 
-	 		printk("Total VM size, %ld byte\n", totalSize);
+	 		printk(KERN_ERR "Total VM size, %ld byte\n", totalSize);
 
 	 		struct files_struct *files_task;	
 	 		files_task = temp->files;
 	 		struct fdtable *table_file;
 	 		table_file = files_fdtable(files_task); 
-
+	 		
 	 		int count = 0;
 	 		while(table_file->fd[count] != NULL) {
-	 			printk("Opened file %i; flag is %i\n", count, table_file->fd[count]->f_flags);
+	 			struct inode *tmpNode = table_file->fd[count]->f_inode;
+	 			printk(KERN_EMERG "File Descriptor %i, File name: %s; Flags:%ld, Version number: %ld, Size of file: %lld, Block size in bits: %hu, Inode Number: %ld\n", 
+	 				count, table_file->fd[count]->f_path.dentry->d_name.name, table_file->fd[count]->f_flags, tmpNode->i_version, tmpNode->i_size, tmpNode->i_blkbits, tmpNode->i_ino);
+
 	 			count++;
 	 		}
-
-	 		//printk("Hım? %d\n", atomic_read(&files_task->count));
-// This part goes into kernel panic. Yeah, you heard it right, I said kernel panic.
-/*
-	 	struct files_struct *files_task;
-	 	struct fdtable *file_t;
-
-	 	files_task = temp->files;
-	 	file_t = files_fdtable(files_task);
-	 	int count = 0;
-	 	while(file_t->fd[count] != NULL) {
-	 		struct path file_path = file_t->fd[count]->f_path;
-	 		char *path_str = d_path(&file_path,(char*)kmalloc(GFP_KERNEL,100*sizeof(char)),100*sizeof(char));
-	 		printk("File name is %s\n", path_str);
-	 		count++;
-	 	}
-*/
 	 	}
 	 }
 
