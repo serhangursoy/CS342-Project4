@@ -22,14 +22,14 @@ list_entry_rcu((p)->tasks.next, struct task_struct, tasks)
 for (p = &init_task ; (p = next_task(p)) != &init_task ; )
 
 	MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Serhan GURSOY");
+MODULE_AUTHOR("Serhan GURSOY & Ege YOSUNKAYA");
 MODULE_DESCRIPTION("CS342 PROJECT 4 KERNEL MODULE. IT DOES REALLY TRICKY JOBS. REALLY. SO, WATCH OUT FOR ITS OUTPUTS.");
 
 short isDebug = 0;
 int input_pid = -1;
 module_param(input_pid, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
-static int hello_init(void)
+static int project_module_init(void)
 {
 	printk(KERN_INFO "************ BEGINNING OF MODULE ************\n");
 
@@ -112,15 +112,18 @@ static int hello_init(void)
 	 			int count = 0;
 	 			if (table_file != NULL) {
 	 				if (table_file->fd != NULL) {
-
+	 					int max_fd = table_file->max_fds;
+	 					// printk("Max opened fds are %lu\n", max_fd);
 	 					short checkFiles = 0;
-	 					while(table_file->fd[count] != NULL) {
-	 						if (table_file->fd[count]->f_inode != NULL) {
-	 							struct inode *tmpNode = table_file->fd[count]->f_inode;
-	 							printk(KERN_EMERG "File Descriptor %i, File name: %s; Flags:%ld, Version number: %ld, Size of file: %lld, Block size in bits: %hu, Inode Number: %ld\n", 
-	 								count, table_file->fd[count]->f_path.dentry->d_name.name, table_file->fd[count]->f_flags, tmpNode->i_version, tmpNode->i_size, tmpNode->i_blkbits, tmpNode->i_ino);
+	 					while(count < max_fd) {
+	 						if (table_file->fd[count] != NULL) {
+	 							if (table_file->fd[count]->f_inode != NULL) {
+	 								struct inode *tmpNode = table_file->fd[count]->f_inode;
+	 								printk(KERN_EMERG "File Descriptor %i, File name: %s; Flags:%ld, Version number: %ld, Size of file: %lld, Block size in bits: %hu, Inode Number: %ld\n", 
+	 									count, table_file->fd[count]->f_path.dentry->d_name.name, table_file->fd[count]->f_flags, tmpNode->i_version, tmpNode->i_size, tmpNode->i_blkbits, tmpNode->i_ino);
 
-	 							if (!checkFiles) checkFiles = 1;
+	 								if (!checkFiles) checkFiles = 1;
+	 							}
 	 						}
 	 						count++;
 	 					}
@@ -148,11 +151,11 @@ if (checkerByte==0)
 return 0;
 }
 
-static void hello_exit(void)
+static void project_module_exit(void)
 {
 	printk(KERN_INFO "************ END OF MODULE ************\n");
 }
 
 
-module_init(hello_init);
-module_exit(hello_exit);
+module_init(project_module_init);
+module_exit(project_module_exit);
